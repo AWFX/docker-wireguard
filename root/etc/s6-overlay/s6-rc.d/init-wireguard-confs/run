@@ -128,6 +128,7 @@ save_vars () {
     cat <<DUDE > /config/.donoteditthisfile
 ORIG_SERVERURL="$SERVERURL"
 ORIG_SERVERPORT="$SERVERPORT"
+ORIG_INTERNALPORT="$INTERNALPORT"
 ORIG_PEERDNS="$PEERDNS"
 ORIG_PEERS="$PEERS"
 ORIG_INTERFACE="$INTERFACE"
@@ -154,7 +155,10 @@ if [[ -n "$PEERS" ]]; then
         echo "**** External server address is set to $SERVERURL ****"
     fi
     SERVERPORT=${SERVERPORT:-51820}
-    echo "**** External server port is set to ${SERVERPORT}. Make sure that port is properly forwarded to port 51820 inside this container ****"
+
+    # add the ability to change the port in wg0.conf
+    INTERNALPORT=${INTERNALPORT:-51820}
+    echo "**** External server port is set to ${SERVERPORT}. Make sure that port is properly forwarded to port ${INTERNALPORT} inside this container ****"
     INTERNAL_SUBNET=${INTERNAL_SUBNET:-10.13.13.0}
     echo "**** Internal subnet is set to $INTERNAL_SUBNET ****"
     INTERFACE=$(echo "$INTERNAL_SUBNET" | awk 'BEGIN{FS=OFS="."} NF--')
@@ -175,7 +179,7 @@ if [[ -n "$PEERS" ]]; then
         if [[ -f /config/.donoteditthisfile ]]; then
             . /config/.donoteditthisfile
         fi
-        if [[ "$SERVERURL" != "$ORIG_SERVERURL" ]] || [[ "$SERVERPORT" != "$ORIG_SERVERPORT" ]] || [[ "$PEERDNS" != "$ORIG_PEERDNS" ]] || [[ "$PEERS" != "$ORIG_PEERS" ]] || [[ "$INTERFACE" != "$ORIG_INTERFACE" ]] || [[ "$ALLOWEDIPS" != "$ORIG_ALLOWEDIPS" ]] || [[ "$PERSISTENTKEEPALIVE_PEERS" != "$ORIG_PERSISTENTKEEPALIVE_PEERS" ]]; then
+        if [[ "$SERVERURL" != "$ORIG_SERVERURL" ]] || [["$INTERNALPORT" != "$ORIG_INTERNALPORT"]] || [[ "$SERVERPORT" != "$ORIG_SERVERPORT" ]] || [[ "$PEERDNS" != "$ORIG_PEERDNS" ]] || [[ "$PEERS" != "$ORIG_PEERS" ]] || [[ "$INTERFACE" != "$ORIG_INTERFACE" ]] || [[ "$ALLOWEDIPS" != "$ORIG_ALLOWEDIPS" ]] || [[ "$PERSISTENTKEEPALIVE_PEERS" != "$ORIG_PERSISTENTKEEPALIVE_PEERS" ]]; then
             echo "**** Server related environment variables changed, regenerating 1 server and ${PEERS} peer/client confs ****"
             generate_confs
             save_vars
